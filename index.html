@@ -1,0 +1,145 @@
+﻿<html>
+<head> 
+<title>Shelters in Hakone City</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=yes" charset="utf-8" /> 
+<link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdata.js"></script> 
+<link class="include" rel="stylesheet" type="text/css" href="jqplot/jquery.jqplot.min.css" />
+<script class="include" type="text/javascript" src="jqplot/jquery.jqplot.min.js"></script>
+<script type="text/javascript" src="jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&v=3&language=ja&libraries=visualization"></script> 
+<script type="text/javascript" src="jquery.xdomainajax.js"></script>
+<script type="text/javascript"> 
+  function initialize() { 
+  
+    String.prototype.replaceAll = function (org, dest){  
+      return this.split(org).join(dest);  
+    }  
+
+    // Put shelters on Google Maps
+    var mapstyle = [
+    {
+　    featureType:"all",
+　    elementType:"all",
+　    stylers: [
+        {visibility: "on" }
+      ]
+    }
+    ]; 
+    var latlng = new google.maps.LatLng(35.242364, 139.020882); // Ohwakudani
+    var myOptions = { 
+      zoom: 12, 
+      center: latlng, 
+      mapTypeId: google.maps.MapTypeId.ROADMAP 
+    }; 
+    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);  
+    // Alert point 'Ohwakudani'
+    new google.maps.Circle({
+      center: latlng,
+      fillColor: '#ff0000',
+      fillOpacity: 0.20,
+      map: map,
+      radius: 300,
+      strokeColor: '#ff0000',
+      strokeOpacity: 0,
+      strokeWeight: 1
+    }); 
+    new google.maps.Circle({
+      center: latlng,
+      fillColor: '#ff0000',
+      fillOpacity: 0.10,
+      map: map,
+      radius: 1000,
+      strokeColor: '#ff0000',
+      strokeOpacity: 0,
+      strokeWeight: 1
+    }); 
+    
+    //binding shelters.csv
+    var url = './shelters.csv';
+    var source = {
+        datatype: "csv",
+        datafields: [
+          { name: 'id', type: 'float' },
+          { name: 'area', type: 'text' },
+          { name: 'district', type: 'text' },
+          { name: 'shelter', type: 'text' },
+          { name: 'address', type: 'text' },
+          { name: 'lat', type: 'float' },
+          { name: 'lng', type: 'float' },
+          { name: 'route', type: 'text' }],
+          url: url
+        };
+    var dataAdapter = new $.jqx.dataAdapter(source, {
+        loadComplete: function () {
+          var records = dataAdapter.records;
+          var length = records.length;
+          for ( var i = 0 ; i < length ; i++) {
+              var pos = new google.maps.LatLng(records[i].lat, records[i].lng);
+              var marker = new google.maps.Marker({
+                position: pos,
+                map: map, 
+                title: records[i].shelter
+              });
+
+          }
+        }
+    
+    });
+    dataAdapter.dataBind();
+    
+    // Occurrence times of Earthquake
+    var content = new Array();
+    $.ajax({
+      url: 'http://www.onken.odawara.kanagawa.jp/files/dat_auto/list_N_day.html',
+      type: 'GET',
+      cache: false,
+      async: false,
+      success: function(res) {
+        var tags = $(res.responseText).find("LI").children().prevObject.prevObject;
+        for( var i=0; i < tags.length ; i++ ) {
+          if( tags[i].nodeName == 'LI' ) content.push(tags[i].innerText.split('\n')[0] );
+        }
+        alert(content.length);
+        
+        var data = [];
+//        for( var i=0 ; i < content.length ; i++ ) {
+        for( var i=content.length-1 ; i >= 0 ; i-- ) {
+          var d = content[i].split("　　");
+//          data.push( [parseInt(d[1]), Date.parse(d[0])] );
+          data.push( [ d[0].replaceAll('/', '-'), parseInt(d[1])] );
+        }
+        jQuery.jqplot(
+            'earthquake',
+             [data],
+            {
+                title: '地震発生回数',
+                axes:{
+                    xaxis:{
+                        label:'date',
+                        renderer:$.jqplot.DateAxisRenderer,
+                        series:[{lineWidth:4, markerOptions:{style:'square'}}]
+                    },
+                    yaxis:{
+                        label:'times',
+                        min: 0
+                    }
+               }
+            }
+        );
+      }
+    })
+  }
+</script> 
+</head> 
+<body onload="initialize()"> 
+  <p align="left">箱根町避難所マップ Shelters in Hakone City<img src="resources/cfk.jpg" align=right widrh=100px height=40px></p>
+  
+  <div id="map_canvas" style="float:left;width:100%; height:80%;"></div> 
+  <p>神奈川県公式 <a href="http://www.pref.kanagawa.jp/cnt/f532566/">箱根大涌谷情報</a></p>
+  <p>箱根町公式 <a href="http://www.town.hakone.kanagawa.jp/hakone_j/ka/soumu/saigai02.html">箱根町周辺の火山・地震活動</a></p>
+  <div id="earthquake" style="height: 300pt; width: 100%;"></div>
+</body> 
+</html>
