@@ -102,8 +102,6 @@
         for( var i=0; i < tags.length ; i++ ) {
           if( tags[i].nodeName == 'LI' ) content.push(tags[i].innerText.split('\n')[0] );
         }
-        alert(content.length);
-        
         var data = [];
 //        for( var i=0 ; i < content.length ; i++ ) {
         for( var i=content.length-1 ; i >= 0 ; i-- ) {
