@@ -105,7 +105,7 @@
         
         var data = [];
 //        for( var i=0 ; i < content.length ; i++ ) {
-        for( var i=content.length-1 ; i >= 0 ; i-- ) {
+        for( var i=30 ; i >= 0 ; i-- ) {
           var d = content[i].split("　　");
 //          data.push( [parseInt(d[1]), Date.parse(d[0])] );
           data.push( [ d[0].replaceAll('/', '-'), parseInt(d[1])] );
@@ -114,7 +114,7 @@
             'earthquake',
              [data],
             {
-                title: '地震発生回数',
+                title: '箱根 地震発生回数 (回/日)',
                 axes:{
                     xaxis:{
                         label:'date',
